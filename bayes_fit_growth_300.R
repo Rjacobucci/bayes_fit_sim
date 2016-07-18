@@ -1,6 +1,9 @@
+install.packages("blavaan", repos="http://faculty.missouri.edu/~merklee", type="source")
+
+
 library(blavaan)
 
-install.packages("blavaan", repos="http://faculty.missouri.edu/~merklee", type="source")
+
 
 
 # three simulated dataset
@@ -9,6 +12,8 @@ install.packages("blavaan", repos="http://faculty.missouri.edu/~merklee", type="
 # 3. quadratic growth
 
 # vary sample size simulated
+
+# each target model 
 
 mod.noGrowth <-"
 i =~ 1*t1 + 1*t2 + 1*t3 + 1*t4
@@ -27,7 +32,7 @@ i~~0*s
 mod.linearGrowth <-"
 i =~ 1*t1 + 1*t2 + 1*t3 + 1*t4
 s =~ 0*t1 + 1*t2 + 2*t3 + 3*t4
-i~5*1
+i~0*1
 s~0*1
 s~~1*s
 i~~1*i
@@ -42,7 +47,7 @@ mod.quadGrowth <-"
 i =~ 1*t1 + 1*t2 + 1*t3 + 1*t4
 s =~ 0*t1 + 1*t2 + 2*t3 + 3*t4
 s2 =~ 0*t1 + 1*t2 + 4*t3 + 9*t4
-i~5*1
+i~0*1
 s~0*1
 s2~0*1
 s~~1*s
@@ -61,8 +66,8 @@ s~~0*s2
 
 count= 0
 #samps = c(100,300,1000)
-samps = 1000
-iters=1
+samps = 300
+iters=5
 mods = list(mod.noGrowth,mod.linearGrowth,mod.quadGrowth)
 #mods = mod.noGrowth
 
@@ -87,24 +92,24 @@ for(i in 1:iters){
       #dat1 <- simulateData(mod.noGrowth,sample.nobs=100,model.type="lavaan")
       #dat2 <- simulateData(mod.linearGrowth,sample.nobs=100,model.type="lavaan")
       #dat3 <- simulateData(mod.quadGrowth,sample.nobs=100,model.type="lavaan")
-      dat <- simulateData(mods[[k]],sample.nobs=samps[[j]],model.type="lavaan")
+      dat <- lavaan::simulateData(mods[[k]],sample.nobs=samps[[j]],model.type="lavaan")
       
       
-      if(samps[[j]]==100){
-        time="3m"
-      }else if(samps[[j]]==300){
-        time="10m"
-      }else if(samps[[j]]==1000){
-        time="30m"
-      }
+    #  if(samps[[j]]==100){
+     #   time="3m"
+      #}else if(samps[[j]]==300){
+       #time="10m"
+      #}else if(samps[[j]]==1000){
+      #  time="30m"
+      #}
       
       
       
       mod1 <- ' i =~ 1*t1 + 1*t2 + 1*t3 + 1*t4
                 s =~ 0*t1 + 0*t2 + 0*t3 + 0*t4 '
                 #t1~~r1*t1; t2~~r1*t2; t3~~r1*t3; t4~~r1*t4'
-      fit1 = try(bgrowth(mod1, data=dat,convergence="auto",dp=dpriors(alpha="dnorm(0,10)"),
-                         jagcontrol=list(method="rjparallel",max.time=time,psrf.target=1.05)))
+      fit1 = try(bgrowth(mod1, data=dat,dp=dpriors(alpha="dnorm(0,10)"),sample=50000,burning=10000,
+                         jagcontrol=list(method="rjparallel")))
       if(inherits(fit1, "try-error")){
         fit.ret[count,"conv1"] = -9999
         fit.ret[count,"iters1"] <- fit1@external$runjags$summary$end
@@ -132,8 +137,8 @@ for(i in 1:iters){
       
       mod2 <- ' i =~ 1*t1 + 1*t2 + 1*t3 + 1*t4
       s =~ 0*t1 + 1*t2 + 2*t3 + 3*t4 '
-      fit2 = try(bgrowth(mod2, data=dat,convergence="auto",
-                         jagcontrol=list(method="rjparallel",max.time=time,psrf.target=1.05)))
+      fit2 = try(bgrowth(mod2, data=dat,sample=20000,burnin=8000,adapt=2000,
+                         jagcontrol=list(method="rjparallel")))
       if(inherits(fit2, "try-error")){
         fit.ret[count,"conv2"] = -9999
         fit.ret[count,"iters2"] <- fit2@external$runjags$summary$end
@@ -163,8 +168,8 @@ for(i in 1:iters){
       s =~ 0*t1 + 1*t2 + 2*t3 + 3*t4
       s2 =~ 0*t1 + 1*t2 + 4*t3 + 9*t4'
       
-      fit3 = try(bgrowth(mod3, data=dat,convergence="auto",
-                         jagcontrol=list(method="rjparallel",max.time=time,psrf.target=1.05)))
+      fit3 = try(bgrowth(mod3, data=dat, sample=20000,burnin=8000,adapt=2000,
+                         jagcontrol=list(method="rjparallel")))
       if(inherits(fit3, "try-error")){
         fit.ret[count,"conv3"] = -9999
         fit.ret[count,"iters3"] <- fit3@external$runjags$summary$end
@@ -192,8 +197,8 @@ for(i in 1:iters){
       
       mod4 <- ' i =~ 1*t1 + 1*t2 + 1*t3 + 1*t4
       s =~ 0*t1 + l1*t2 + l2*t3 + 1*t4'
-      fit4 = try(bgrowth(mod4, data=dat,convergence="auto",
-                         jagcontrol=list(method="rjparallel",max.time=time,psrf.target=1.05)))
+      fit4 = try(bgrowth(mod4, data=dat, sample=20000,burnin=8000,adapt=2000,
+                         jagcontrol=list(method="rjparallel")))
       if(inherits(fit4, "try-error")){
         fit.ret[count,"conv4"] = -9999
         fit.ret[count,"iters4"] <- fit4@external$runjags$summary$end
@@ -235,5 +240,6 @@ for(i in 1:iters){
 #  min[i,4] = which(fit.ret[i,c(6,11,16,21)] == min(fit.ret[i,c(6,11,16,21)]))
 #  min[i,5] = which(fit.ret[i,c(7,12,17,22)] == min(fit.ret[i,c(7,12,17,22)]))
 #}
+
 
 

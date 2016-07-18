@@ -10,6 +10,29 @@ install.packages("blavaan", repos="http://faculty.missouri.edu/~merklee", type="
 
 # vary sample size simulated
 
+
+
+# starting values for each model
+nchains = 3
+
+
+init.list1 = list()
+for(i in 1:nchains){
+  alpha = c(0,0) + rnorm(1,0,0.05)
+  psi = c(1,1) + rnorm(1,0,0.05)
+  theta = c(1,1,1,1) + rnorm(1,0,0.05)
+  cov = c(1) + rnorm(1,0,0.001)
+  
+  init.list1[[i]] = list(alpha=alpha, ipsi=ipsi,
+                        itheta=itheta,
+                        ibpsi=ibpsi)
+}
+
+
+
+
+# each target model 
+
 mod.noGrowth <-"
 i =~ 1*t1 + 1*t2 + 1*t3 + 1*t4
 s =~ 0*t1 + 0*t2 + 0*t3 + 0*t4
@@ -61,10 +84,10 @@ s~~0*s2
 
 count= 0
 #samps = c(100,300,1000)
-samps = 1000
+samps = 100
 iters=1
-mods = list(mod.noGrowth,mod.linearGrowth,mod.quadGrowth)
-#mods = mod.noGrowth
+#mods = list(mod.noGrowth,mod.linearGrowth,mod.quadGrowth)
+mods = mod.noGrowth
 
 fit.ret = data.frame(matrix(NA,iters*length(samps)*length(mods),38))
 colnames(fit.ret) = c("samp.size","mod",
@@ -237,3 +260,4 @@ for(i in 1:iters){
 #}
 
 
+colnames(fit1@external$runjags$mcmc[[1]])
